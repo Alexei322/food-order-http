@@ -1,36 +1,42 @@
+import { useState, useCallback, useEffect } from "react";
 import Card from "../UI/Card";
 import styles from "./AvailableMeals.module.css";
 import MealItem from "./MealItem/MealItem";
 
-const DUMMY_MEALS = [
-  {
-    id: "m1",
-    name: "Sushi",
-    description: "Finest fish and veggies",
-    price: 22.99,
-  },
-  {
-    id: "m2",
-    name: "Schnitzel",
-    description: "A german specialty!",
-    price: 16.5,
-  },
-  {
-    id: "m3",
-    name: "Barbecue Burger",
-    description: "American, raw, meaty",
-    price: 12.99,
-  },
-  {
-    id: "m4",
-    name: "Green Bowl",
-    description: "Healthy...and green...",
-    price: 18.99,
-  },
-];
-
 const AvailableMeals = () => {
-  const mealsList = DUMMY_MEALS.map((meal) => (
+  const [error, setError] = useState(null);
+  const [LOADED_DUMMY_MOVIES, setLOADED_DUMMY_MOVIES] = useState([]);
+  const fetchAvailableMeals = useCallback(async () => {
+    try {
+      const response = await fetch(
+        "https://meals-react-1047a-default-rtdb.europe-west1.firebasedatabase.app/DUMMY_MEALS.json"
+      );
+      if (!response.ok) {
+        throw new Error("NO DUMMY ITEMS FOUND");
+      }
+      const DUMMY_ITEMS2 = await response.json();
+      console.log(DUMMY_ITEMS2);
+      const responseArray = [];
+      for (const key in DUMMY_ITEMS2) {
+        responseArray.push({
+          key: DUMMY_ITEMS2[key].id,
+          id: DUMMY_ITEMS2[key].id,
+          name: DUMMY_ITEMS2[key].name,
+          description: DUMMY_ITEMS2[key].description,
+          price: DUMMY_ITEMS2[key].price,
+        });
+      }
+      setLOADED_DUMMY_MOVIES(responseArray);
+    } catch (error) {
+      setError(error.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchAvailableMeals();
+  }, [fetchAvailableMeals]);
+
+  const mealsList = LOADED_DUMMY_MOVIES.map((meal) => (
     <MealItem
       key={meal.id}
       id={meal.id}

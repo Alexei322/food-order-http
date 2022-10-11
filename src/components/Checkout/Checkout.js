@@ -1,7 +1,10 @@
 import Modal from "../UI/Modal";
 import styles from "./Checkout.module.css";
 import InputHook from "../../hooks/InputHook";
+import { useContext } from "react";
+import CartContext from "../../store/cart-context";
 const Checkout = (props) => {
+  const {sendOrder} = useContext(CartContext)
   const {
     value: enteredFirstName,
     setValue: setFirstName,
@@ -66,6 +69,7 @@ const Checkout = (props) => {
     addressOneReset();
     addressTwoReset();
     postcodeReset();
+    sendOrder();
     props.onClose();
   };
 

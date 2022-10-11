@@ -65,7 +65,6 @@ const cartReducer = (state, action) => {
 };
 
 const CartProvider = (props) => {
-  const [error, setError] = useState(null);
   const [LOADED_DUMMY_MOVIES, setLOADED_DUMMY_MOVIES] = useState([]);
 
   const [cartState, dispatchCartAction] = useReducer(
@@ -94,15 +93,32 @@ const CartProvider = (props) => {
       }
       setLOADED_DUMMY_MOVIES(responseArray);
     } catch (error) {
-      setError(error.message);
+      console.log(error.message);
     }
   }, []);
 
+  const sendOrder = useCallback(async () => {
+    try {
+      const response = await fetch(
+        "https://meals-react-1047a-default-rtdb.europe-west1.firebasedatabase.app/order.json",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(cartState)
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Connection failed");
+      }
+      console.log(response);
+    } catch (error) {
+      console.log(error.message);
+    }
+  }, [cartState]);
 
   useEffect(() => {
     fetchAvailableMeals();
   }, [fetchAvailableMeals]);
-
 
   const addItemToCartHandler = (item) => {
     dispatchCartAction({ type: "ADD", item: item });
@@ -118,6 +134,7 @@ const CartProvider = (props) => {
     addItem: addItemToCartHandler,
     removeItem: removeItemFromCartHandler,
     dummy_movies: LOADED_DUMMY_MOVIES,
+    sendOrder: sendOrder,
   };
 
   return (

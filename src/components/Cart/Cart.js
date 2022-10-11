@@ -19,6 +19,11 @@ const Cart = (props) => {
     ctx.addItem({...item, amount: 1})
   };
 
+  const showOrderFormHandler = () => {
+    props.onClose()
+    props.onOrder()
+  }
+
   const cartItems = (
     <ul className={styles["cart-items"]}>
       {ctx.items.map((item) => (
@@ -45,7 +50,7 @@ const Cart = (props) => {
           Close
         </button>
 
-        {hasItems && <button className={styles.button}>Order</button>}
+        {hasItems && <button onClick={showOrderFormHandler} className={styles.button}>Order</button>}
       </div>
     </Modal>
   );

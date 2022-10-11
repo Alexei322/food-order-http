@@ -1,6 +1,6 @@
-import { useReducer } from 'react';
+import { useState, useReducer, useCallback, useEffect } from "react";
 
-import CartContext from './cart-context';
+import CartContext from "./cart-context";
 
 const defaultCartState = {
   items: [],
@@ -8,7 +8,13 @@ const defaultCartState = {
 };
 
 const cartReducer = (state, action) => {
-  if (action.type === 'ADD') {
+  if (action.type === "SET") {
+    return {
+      items: action.items,
+      totalAmount: action.totalAmount,
+    };
+  }
+  if (action.type === "ADD") {
     const updatedTotalAmount =
       state.totalAmount + action.item.price * action.item.amount;
 
@@ -34,7 +40,7 @@ const cartReducer = (state, action) => {
       totalAmount: updatedTotalAmount,
     };
   }
-  if (action.type === 'REMOVE') {
+  if (action.type === "REMOVE") {
     const existingCartItemIndex = state.items.findIndex(
       (item) => item.id === action.id
     );
@@ -42,7 +48,7 @@ const cartReducer = (state, action) => {
     const updatedTotalAmount = state.totalAmount - existingItem.price;
     let updatedItems;
     if (existingItem.amount === 1) {
-      updatedItems = state.items.filter(item => item.id !== action.id);
+      updatedItems = state.items.filter((item) => item.id !== action.id);
     } else {
       const updatedItem = { ...existingItem, amount: existingItem.amount - 1 };
       updatedItems = [...state.items];
@@ -51,7 +57,7 @@ const cartReducer = (state, action) => {
 
     return {
       items: updatedItems,
-      totalAmount: updatedTotalAmount
+      totalAmount: updatedTotalAmount,
     };
   }
 
@@ -59,17 +65,51 @@ const cartReducer = (state, action) => {
 };
 
 const CartProvider = (props) => {
+  const [error, setError] = useState(null);
+  const [LOADED_DUMMY_MOVIES, setLOADED_DUMMY_MOVIES] = useState([]);
+
   const [cartState, dispatchCartAction] = useReducer(
     cartReducer,
     defaultCartState
   );
 
+  const fetchAvailableMeals = useCallback(async () => {
+    try {
+      const response = await fetch(
+        "https://meals-react-1047a-default-rtdb.europe-west1.firebasedatabase.app/DUMMY_MEALS.json"
+      );
+      if (!response.ok) {
+        throw new Error("NO DUMMY ITEMS FOUND");
+      }
+      const DUMMY_ITEMS2 = await response.json();
+      const responseArray = [];
+      for (const key in DUMMY_ITEMS2) {
+        responseArray.push({
+          key: DUMMY_ITEMS2[key].id,
+          id: DUMMY_ITEMS2[key].id,
+          name: DUMMY_ITEMS2[key].name,
+          description: DUMMY_ITEMS2[key].description,
+          price: DUMMY_ITEMS2[key].price,
+        });
+      }
+      setLOADED_DUMMY_MOVIES(responseArray);
+    } catch (error) {
+      setError(error.message);
+    }
+  }, []);
+
+
+  useEffect(() => {
+    fetchAvailableMeals();
+  }, [fetchAvailableMeals]);
+
+
   const addItemToCartHandler = (item) => {
-    dispatchCartAction({ type: 'ADD', item: item });
+    dispatchCartAction({ type: "ADD", item: item });
   };
 
   const removeItemFromCartHandler = (id) => {
-    dispatchCartAction({ type: 'REMOVE', id: id });
+    dispatchCartAction({ type: "REMOVE", id: id });
   };
 
   const cartContext = {
@@ -77,6 +117,7 @@ const CartProvider = (props) => {
     totalAmount: cartState.totalAmount,
     addItem: addItemToCartHandler,
     removeItem: removeItemFromCartHandler,
+    dummy_movies: LOADED_DUMMY_MOVIES,
   };
 
   return (
